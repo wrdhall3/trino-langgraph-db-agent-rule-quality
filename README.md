@@ -51,7 +51,7 @@ We leverage **Graph Databases** to model Critical Data Elements (CDEs) and Data 
                                 │
                     ┌───────────▼──────────┐
                     │    Agentic AI Layer  │
-                    │   (LangGraph/Crew)   │
+                    │     (LangGraph)      │
                     └───────────┬──────────┘
                                 │
                     ┌───────────▼──────────┐
@@ -155,16 +155,16 @@ graph TD
     style H fill:#fff3e0
 ```
 
-**Crews & Agents**:
-- **Database Management Crew**
-  - **NLP Agent**: Processes natural language input
-  - **Cypher Agent**: Generates Neo4j Cypher queries
-  - **Validation Agent**: Validates query syntax and logic
-  - **Execution Agent**: Executes queries against Neo4j
-  - **Verification Agent**: Confirms changes were applied correctly
+**LangGraph Workflow**:
+- **Database Management Workflow**
+  - **NLP Agent Node**: Processes natural language input
+  - **Cypher Agent Node**: Generates Neo4j Cypher queries
+  - **Validation Agent Node**: Validates query syntax and logic
+  - **Execution Agent Node**: Executes queries against Neo4j
+  - **Verification Agent Node**: Confirms changes were applied correctly
 
-**Tasks & Tools**:
-- **Tasks**: Parse input, generate Cypher, validate syntax, execute query, verify results
+**State & Tools**:
+- **State Flow**: Parse input → generate Cypher → validate syntax → execute query → verify results
 - **Tools**: Neo4j Driver, Cypher Parser, Query Validator, Natural Language Processor
 
 ### Application 2: Data Quality Validation Workflow
@@ -187,17 +187,17 @@ graph TD
     style I fill:#fff3e0
 ```
 
-**Crews & Agents**:
-- **Data Quality Analysis Crew**
-  - **Discovery Agent**: Finds CDEs and rules in Neo4j
-  - **Extraction Agent**: Pulls data from multiple MySQL systems via Trino
-  - **Evaluation Agent**: Applies DQ rules across all systems
-  - **Detection Agent**: Identifies violations and inconsistencies
-  - **Reporting Agent**: Generates structured violation reports
-  - **Analysis Agent**: Provides AI-powered insights and recommendations
+**LangGraph Workflow**:
+- **Data Quality Analysis Workflow**
+  - **Discovery Agent Node**: Finds CDEs and rules in Neo4j
+  - **Extraction Agent Node**: Pulls data from multiple MySQL systems via Trino
+  - **Evaluation Agent Node**: Applies DQ rules across all systems
+  - **Detection Agent Node**: Identifies violations and inconsistencies
+  - **Reporting Agent Node**: Generates structured violation reports
+  - **Analysis Agent Node**: Provides AI-powered insights and recommendations
 
-**Tasks & Tools**:
-- **Tasks**: Extract metadata, gather data, evaluate rules, detect violations, generate reports, analyze patterns
+**State & Tools**:
+- **State Flow**: Extract metadata → gather data → evaluate rules → detect violations → generate reports → analyze patterns
 - **Tools**: Neo4j Driver, Trino Connector, Rule Engine, Report Generator, LLM Integration
 
 ## 📊 Graph Database Schema
