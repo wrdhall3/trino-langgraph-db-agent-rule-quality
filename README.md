@@ -254,24 +254,21 @@ graph LR
 
 ```sql
 -- Trade System Schema
-CREATE TABLE trades (
-    uitid VARCHAR(50) PRIMARY KEY,
-    trade_date DATE NOT NULL,
-    symbol VARCHAR(20) NOT NULL,
-    quantity DECIMAL(15,2) NOT NULL,
-    price DECIMAL(15,4) NOT NULL,
-    side ENUM('BUY', 'SELL') NOT NULL,
-    trader_id VARCHAR(20),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE positions (
-    position_id VARCHAR(50) PRIMARY KEY,
-    uitid VARCHAR(50),
+CREATE TABLE trade (
+    trade_id INTEGER PRIMARY KEY,
+    trader_id VARCHAR(32),
     symbol VARCHAR(20),
-    quantity DECIMAL(15,2),
-    average_price DECIMAL(15,4),
-    FOREIGN KEY (uitid) REFERENCES trades(uitid)
+    cusip VARCHAR(15),
+    side VARCHAR(4),
+    trade_date DATE,
+    settle_date DATE,
+    quantity INTEGER,
+    price DECIMAL(15,4),
+    net_amount DECIMAL(18,2),
+    trade_currency CHAR(3),
+    settlement_currency CHAR(3),
+    book_name VARCHAR(10),
+    uitid VARCHAR(64)
 );
 ```
 
@@ -279,22 +276,26 @@ CREATE TABLE positions (
 
 ```sql
 -- Settlement System Schema
-CREATE TABLE settlements (
-    settlement_id VARCHAR(50) PRIMARY KEY,
-    uitid VARCHAR(50) NOT NULL,
+CREATE TABLE trade (
+    trade_id BIGINT PRIMARY KEY,
+    counterparty_name VARCHAR(100),
+    symbol VARCHAR(10),
+    cusip VARCHAR(15),
+    trade_date DATE,
     settlement_date DATE,
-    settlement_amount DECIMAL(15,2),
-    settlement_status ENUM('PENDING', 'SETTLED', 'FAILED'),
-    counterparty VARCHAR(100),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE settlement_instructions (
-    instruction_id VARCHAR(50) PRIMARY KEY,
-    settlement_id VARCHAR(50),
-    instruction_type VARCHAR(50),
-    instruction_details TEXT,
-    FOREIGN KEY (settlement_id) REFERENCES settlements(settlement_id)
+    side VARCHAR(4),
+    quantity INTEGER,
+    price DECIMAL(18,6),
+    net_amount DECIMAL(18,2),
+    trade_currency CHAR(3),
+    settlement_currency CHAR(3),
+    book_name VARCHAR(10),
+    settlement_status VARCHAR(11),
+    source_system VARCHAR(64),
+    uitid VARCHAR(64),
+    settlement_location VARCHAR(64),
+    created_at TIMESTAMP,
+    updated_at TIMESTAMP
 );
 ```
 
@@ -302,24 +303,30 @@ CREATE TABLE settlement_instructions (
 
 ```sql
 -- Reporting System Schema
-CREATE TABLE regulatory_reports (
-    report_id VARCHAR(50) PRIMARY KEY,
-    uitid VARCHAR(50) NOT NULL,
-    report_date DATE NOT NULL,
-    report_type VARCHAR(50),
-    regulatory_body VARCHAR(100),
-    report_data JSON,
-    submission_status ENUM('DRAFT', 'SUBMITTED', 'APPROVED', 'REJECTED'),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE TABLE compliance_checks (
-    check_id VARCHAR(50) PRIMARY KEY,
-    uitid VARCHAR(50),
-    check_type VARCHAR(50),
-    check_result ENUM('PASS', 'FAIL', 'WARNING'),
-    check_details TEXT,
-    FOREIGN KEY (uitid) REFERENCES regulatory_reports(uitid)
+CREATE TABLE trade (
+    trade_id BIGINT PRIMARY KEY,
+    uitid VARCHAR(64),
+    counterparty_name VARCHAR(100),
+    book_name VARCHAR(10),
+    trader_id VARCHAR(32),
+    instrument_symbol VARCHAR(20),
+    instrument_name VARCHAR(100),
+    asset_class VARCHAR(10),
+    side VARCHAR(4),
+    trade_date DATE,
+    settlement_date DATE,
+    quantity INTEGER,
+    price DECIMAL(18,6),
+    notional_value DECIMAL(20,2),
+    trade_currency CHAR(3),
+    settlement_currency CHAR(3),
+    trade_status VARCHAR(9),
+    source_system VARCHAR(64),
+    reporting_timestamp TIMESTAMP,
+    amended_timestamp TIMESTAMP,
+    mifid_flag TINYINT,
+    lei_code VARCHAR(20),
+    trade_venue VARCHAR(50)
 );
 ```
 
@@ -414,7 +421,7 @@ Trino is a distributed SQL query engine designed for:
 - **Pandas**: Data manipulation and analysis
 - **Pydantic**: Data validation and serialization
 - **FastAPI**: API development (planned)
-- **Streamlit**: Rapid prototyping of UI components
+
 
 #### Database Connectors
 - **Neo4j Python Driver**: Graph database connectivity
