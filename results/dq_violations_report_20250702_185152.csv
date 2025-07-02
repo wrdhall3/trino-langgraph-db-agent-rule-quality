@@ -1,0 +1,4 @@
+CDE,DQ_Rule_Desc,uitid,Trade System,Settlement System,Reporting System
+Trade Date,Trade Date cannot be null,UIT-0001-ABC,No,No,Yes
+Quantity,Quantity must be positive,UIT-0002-XYZ,Yes,No,No
+Symbol,Symbol must not be null,UIT-0003-DEF,No,Yes,No
