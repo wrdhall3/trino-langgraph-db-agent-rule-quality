@@ -165,23 +165,9 @@ The React-based web interface provides a comprehensive view of your data quality
 - **Performance Metrics**: Track query execution times and system performance
 
 ### UI Screenshots and Navigation
-```
-Main Layout:
-┌─────────────────────────────────────────────────────────────┐
-│ 🏦 Data Quality Management System                    🔄 🔍 │
-├─────────────────────────────────────────────────────────────┤
-│ 📊 Dashboard │ ⚠️ Violations │ 📈 Graph Query │ ⚙️ Settings │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  [Dynamic Content Area - Changes based on selected tab]    │
-│                                                             │
-│  • Real-time data quality metrics                          │
-│  • Interactive violation management                        │
-│  • Natural language graph querying                         │
-│  • System configuration and monitoring                     │
-│                                                             │
-└─────────────────────────────────────────────────────────────┘
-```
+
+![Dashboard Navigation](screenshots/Dashboard.png)
+*Main application interface showing the Dashboard tab with real-time data quality metrics, violation summaries, and navigation between different sections*
 
 ### Usage Examples
 
