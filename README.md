@@ -62,7 +62,26 @@ We leverage **Graph Databases** to model Critical Data Elements (CDEs) and Data 
 
 ## 🔧 Applications
 
-### Application 1: Graph Database Management Tool
+### Application 1: React Web UI Dashboard
+**Purpose**: Interactive web interface for data quality management and monitoring
+
+**Features**:
+- **Dashboard**: Real-time data quality metrics and violation summaries
+- **Violations Management**: Browse, filter, and analyze DQ violations
+- **Graph Query Interface**: Natural language to Cypher query conversion
+- **Rule Management**: View and manage data quality rules
+- **System Monitoring**: Track data quality across all trading systems
+- **Responsive Design**: Mobile-friendly interface
+
+**Tech Stack**:
+- React 18 with TypeScript
+- Ant Design UI components
+- Axios for API communication
+- Modern responsive layout
+
+**Access**: http://localhost:3000
+
+### Application 2: Graph Database Management Tool
 **Purpose**: Modify Neo4j graph database CDEs and DQ Rules using natural language
 
 **Features**:
@@ -70,6 +89,7 @@ We leverage **Graph Databases** to model Critical Data Elements (CDEs) and Data 
 - Automatic Cypher query generation
 - Neo4j database updates
 - Rule validation and testing
+- Interactive query interface
 
 **Agentic Components**:
 - Natural Language Processing Agent
@@ -77,7 +97,9 @@ We leverage **Graph Databases** to model Critical Data Elements (CDEs) and Data 
 - Database Validation Agent
 - Error Handling Agent
 
-### Application 2: Data Quality Validation Engine
+**Access**: Via REST API at http://localhost:8000/api/graphdb/
+
+### Application 3: Data Quality Validation Engine
 **Purpose**: Apply DQ Rules across all systems and generate violation reports
 
 **Features**:
@@ -85,6 +107,8 @@ We leverage **Graph Databases** to model Critical Data Elements (CDEs) and Data 
 - Automated violation detection
 - Comprehensive reporting
 - Real-time monitoring capabilities
+- Optional CSV export
+- Batch processing support
 
 **Agentic Components**:
 - Data Extraction Agent
@@ -92,29 +116,155 @@ We leverage **Graph Databases** to model Critical Data Elements (CDEs) and Data 
 - Report Generation Agent
 - Analysis and Insights Agent
 
+**Access**: Via REST API at http://localhost:8000/api/dq/
+
+## 🖥️ Web UI Features
+
+### Dashboard Overview
+The React-based web interface provides a comprehensive view of your data quality management system:
+
+#### 📊 Main Dashboard
+- **Real-time Metrics**: Live violation counts and system health indicators
+- **Severity Breakdown**: Critical, High, Medium, and Low severity violation counts
+- **System Overview**: Data quality status across Trade, Settlement, and Reporting systems
+- **Quick Actions**: One-click access to run new analysis or refresh data
+
+#### 🔍 Data Quality Violations Page
+- **Comprehensive Table**: View all violations with sortable columns
+- **Advanced Filtering**: Filter by severity, system, rule type, or search text
+- **Violation Details**: Modal popup with complete violation information
+- **Batch Operations**: Run new analysis or export violations
+- **Auto-refresh**: Real-time updates as new violations are detected
+
+#### 📈 Graph Query Interface
+- **Natural Language Input**: Convert plain English to Cypher queries
+- **Sample Queries**: Pre-built queries for common data exploration tasks
+- **Interactive Results**: Formatted display of query results
+- **Query History**: Track your previous queries and results
+- **Schema Explorer**: Browse available nodes, relationships, and properties
+
+#### 🔧 System Administration
+- **Rule Management**: View and understand active data quality rules
+- **System Health**: Monitor connectivity to Neo4j, Trino, and MySQL
+- **API Documentation**: Built-in access to FastAPI documentation
+- **Performance Metrics**: Track query execution times and system performance
+
+### UI Screenshots and Navigation
+```
+Main Layout:
+┌─────────────────────────────────────────────────────────────┐
+│ 🏦 Data Quality Management System                    🔄 🔍 │
+├─────────────────────────────────────────────────────────────┤
+│ 📊 Dashboard │ ⚠️ Violations │ 📈 Graph Query │ ⚙️ Settings │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│  [Dynamic Content Area - Changes based on selected tab]    │
+│                                                             │
+│  • Real-time data quality metrics                          │
+│  • Interactive violation management                        │
+│  • Natural language graph querying                         │
+│  • System configuration and monitoring                     │
+│                                                             │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Usage Examples
+
+#### Running Data Quality Analysis
+1. Navigate to the **Dashboard** tab
+2. Click **"Run New Analysis"** button
+3. View real-time results as violations are detected
+4. Navigate to **Violations** tab for detailed analysis
+
+#### Exploring Graph Database
+1. Go to **Graph Query** tab
+2. Enter natural language query: *"Show me all rules for trade amounts"*
+3. Review generated Cypher query
+4. Execute and view results
+5. Use sample queries for common explorations
+
+#### Managing Violations
+1. Open **Violations** tab
+2. Use filters to narrow down specific issues
+3. Click **"Details"** on any violation for complete information
+4. Export to CSV for external analysis if needed
+
 ## 🚀 How to Run
 
 ### Prerequisites
 ```bash
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
 
 # Set up environment variables
 cp .env.example .env
 # Edit .env with your database credentials
+
+# Install Node.js dependencies for the UI
+cd frontend
+npm install
+cd ..
 ```
 
-### Application 1: Graph Database Management
+### Complete System Setup (All Applications)
+
+#### 1. Start Infrastructure Services
 ```bash
-# Start the graph database management tool
-python graph_db_manager.py
+# Start Docker services (Trino, Neo4j, MySQL)
+docker-compose up -d
 
-# Example usage:
-# "Add a new DQ rule for trade amounts to be positive"
-# "Modify the settlement date CDE to include weekends"
+# Verify Trino connection
+curl http://localhost:8080/v1/info
+
+# Verify Neo4j connection
+curl http://localhost:7474/browser/
 ```
 
-### Application 2: Data Quality Validation
+#### 2. Start Backend API
+```bash
+# Start the FastAPI backend server
+cd backend
+python main.py
+
+# Backend will be available at http://localhost:8000
+# API documentation at http://localhost:8000/docs
+```
+
+#### 3. Start Frontend UI
+```bash
+# Start the React frontend (in a separate terminal)
+cd frontend
+npm start
+
+# Frontend will be available at http://localhost:3000
+```
+
+#### 4. Launch Complete System (Automated)
+```bash
+# Use the automated startup script
+python start_dq_system.py
+
+# This script will:
+# - Start all Docker services
+# - Launch the backend API
+# - Launch the React frontend
+# - Open the UI in your browser
+```
+
+### Individual Application Testing
+
+#### Application 1: Graph Database Management
+```bash
+# Test natural language to Cypher conversion
+python -c "
+from backend.services.cypher_service import CypherService
+service = CypherService()
+result = service.natural_language_to_cypher('Show me all DQ rules')
+print(result)
+"
+```
+
+#### Application 2: Data Quality Validation
 ```bash
 # Run quick validation test
 python quick_start.py
@@ -123,16 +273,63 @@ python quick_start.py
 python sample_dq_workflow.py
 
 # Monitor specific trade IDs
-python monitor_trades.py --uitids T001,T002,T003
+python -c "
+from sample_dq_workflow import run_dq_analysis_workflow
+result = run_dq_analysis_workflow(['T001', 'T002', 'T003'])
+print(f'Found {len(result.get(\"violations\", []))} violations')
+"
 ```
 
-### Docker Setup
+### Docker-Only Setup
 ```bash
-# Start all services
+# Start all services in Docker
 docker-compose up -d
 
-# Verify Trino connection
-curl http://localhost:8080/v1/info
+# Check service status
+docker-compose ps
+
+# View logs
+docker-compose logs -f
+```
+
+## 🔌 API Endpoints
+
+### Graph Database Management
+- **POST** `/api/graphdb/nl-to-cypher` - Convert natural language to Cypher
+- **POST** `/api/graphdb/execute-cypher` - Execute Cypher queries
+- **GET** `/api/graphdb/schema` - Get database schema information
+- **GET** `/api/graphdb/sample-queries` - Get sample queries
+
+### Data Quality Management
+- **POST** `/api/dq/analyze` - Run data quality analysis
+- **GET** `/api/dq/violations` - Get current violations
+- **GET** `/api/dq/rules` - Get all DQ rules
+- **GET** `/api/dq/cdes` - Get all CDEs
+- **GET** `/api/dq/systems` - Get system information
+- **POST** `/api/dq/export-csv` - Export violations to CSV (optional)
+
+### System Health
+- **GET** `/health` - API health check
+- **GET** `/docs` - Interactive API documentation
+- **GET** `/redoc` - Alternative API documentation
+
+### Example API Usage
+```bash
+# Run data quality analysis
+curl -X POST "http://localhost:8000/api/dq/analyze" \
+  -H "Content-Type: application/json" \
+  -d '{"uitids": ["T001", "T002"]}'
+
+# Get violations
+curl "http://localhost:8000/api/dq/violations"
+
+# Convert natural language to Cypher
+curl -X POST "http://localhost:8000/api/graphdb/nl-to-cypher" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "Show me all DQ rules for trade amounts"}'
+
+# Export violations to CSV (optional)
+curl -X POST "http://localhost:8000/api/dq/export-csv"
 ```
 
 ## 🤖 Agentic Workflows
@@ -347,25 +544,33 @@ CREATE TABLE trade (
 
 ## 🔮 Future Development
 
-### Planned Features
-
-#### User Interface
-- **Web Dashboard**: React-based UI for rule management and reporting
-- **Interactive Visualizations**: D3.js graphs for data lineage visualization
+### Recently Implemented ✅
+- **React Web Dashboard**: Complete UI for rule management and reporting
+- **FastAPI Backend**: Full REST API for external system integration
 - **Real-time Monitoring**: Live dashboard for violation tracking
 - **Mobile Interface**: Mobile-responsive design for on-the-go monitoring
+- **Natural Language Querying**: Conversational interface for data exploration
+
+### Planned Features
+
+#### Enhanced Visualizations
+- **Interactive Visualizations**: D3.js graphs for data lineage visualization
+- **Network Diagrams**: Visual representation of system relationships
+- **Violation Trending**: Time-series analysis of data quality metrics
+- **Heat Maps**: System-wide data quality health indicators
 
 #### Enhanced AI Capabilities
 - **Predictive Analytics**: ML models to predict potential data quality issues
 - **Automated Rule Generation**: AI-suggested rules based on data patterns
-- **Natural Language Querying**: Conversational interface for data exploration
 - **Intelligent Alerting**: Context-aware notifications for critical violations
+- **Smart Recommendations**: AI-powered suggestions for rule improvements
 
 #### Integration Enhancements
-- **REST API**: Full API for external system integration
 - **Kafka Integration**: Real-time data streaming for immediate validation
 - **Cloud Deployment**: AWS/Azure deployment templates
 - **Multi-tenant Support**: Support for multiple business units
+- **Webhook Support**: Real-time notifications to external systems
+- **RBAC**: Role-based access control for enterprise deployment
 
 ## 🎓 Technology Introductions
 
@@ -417,11 +622,24 @@ Trino is a distributed SQL query engine designed for:
 
 ### Other Frameworks Used
 
+#### Frontend Technologies
+- **React 18**: Modern JavaScript library for building user interfaces
+- **TypeScript**: Type-safe JavaScript with enhanced developer experience
+- **Ant Design**: Enterprise-grade UI components for React
+- **Axios**: Promise-based HTTP client for API communication
+- **Create React App**: Build tooling and development server
+
+#### Backend Technologies
+- **FastAPI**: Modern, fast web framework for building APIs
+- **Uvicorn**: ASGI server for FastAPI applications
+- **Pydantic**: Data validation and serialization
+- **CORS Middleware**: Cross-origin resource sharing support
+
 #### Python Ecosystem
 - **Pandas**: Data manipulation and analysis
-- **Pydantic**: Data validation and serialization
-- **FastAPI**: API development (planned)
-
+- **AsyncIO**: Asynchronous programming support
+- **Logging**: Comprehensive logging and monitoring
+- **CSV**: Data export and reporting functionality
 
 #### Database Connectors
 - **Neo4j Python Driver**: Graph database connectivity
@@ -431,7 +649,8 @@ Trino is a distributed SQL query engine designed for:
 #### AI/ML Libraries
 - **LangChain**: LLM integration and chaining
 - **OpenAI**: GPT model integration
-- **Transformers**: Custom model deployment
+- **LangGraph**: Multi-agent workflow orchestration
+- **Transformers**: Custom model deployment (planned)
 
 ### Vibe Coding
 Vibe Coding is a development philosophy emphasizing:
