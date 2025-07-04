@@ -121,13 +121,16 @@ We leverage **Graph Databases** to model Critical Data Elements (CDEs) and Data 
 ## 🖥️ Web UI Features
 
 ### Dashboard Overview
-The React-based web interface provides a comprehensive view of your data quality management system:
+The React-based web interface provides a comprehensive view of your data quality management system. Below are screenshots showing the key features and interface elements:
 
 #### 📊 Main Dashboard
 - **Real-time Metrics**: Live violation counts and system health indicators
 - **Severity Breakdown**: Critical, High, Medium, and Low severity violation counts
 - **System Overview**: Data quality status across Trade, Settlement, and Reporting systems
 - **Quick Actions**: One-click access to run new analysis or refresh data
+
+![Dashboard Overview](screenshots/Dashboard.png)
+*Main dashboard showing real-time data quality metrics and system overview*
 
 #### 🔍 Data Quality Violations Page
 - **Comprehensive Table**: View all violations with sortable columns
@@ -136,12 +139,24 @@ The React-based web interface provides a comprehensive view of your data quality
 - **Batch Operations**: Run new analysis or export violations
 - **Auto-refresh**: Real-time updates as new violations are detected
 
+![DQ Violations Page](screenshots/DQ_Violations.png)
+*Data Quality Violations page with comprehensive filtering and violation details*
+
 #### 📈 Graph Query Interface
 - **Natural Language Input**: Convert plain English to Cypher queries
 - **Sample Queries**: Pre-built queries for common data exploration tasks
 - **Interactive Results**: Formatted display of query results
 - **Query History**: Track your previous queries and results
 - **Schema Explorer**: Browse available nodes, relationships, and properties
+
+![Graph Query Interface - Top](screenshots/Graph_Query_Top.png)
+*Natural language query input and sample queries section*
+
+![Graph Query Interface - Middle](screenshots/Graph_Query_Middle.png)
+*Query execution and results display*
+
+![Graph Query Interface - Bottom](screenshots/Graph_Query_Bottom.png)
+*Complete query results with formatted output*
 
 #### 🔧 System Administration
 - **Rule Management**: View and understand active data quality rules
@@ -171,20 +186,20 @@ Main Layout:
 ### Usage Examples
 
 #### Running Data Quality Analysis
-1. Navigate to the **Dashboard** tab
+1. Navigate to the **Dashboard** tab (see screenshot above)
 2. Click **"Run New Analysis"** button
 3. View real-time results as violations are detected
-4. Navigate to **Violations** tab for detailed analysis
+4. Navigate to **Violations** tab for detailed analysis (see DQ Violations screenshot above)
 
 #### Exploring Graph Database
-1. Go to **Graph Query** tab
+1. Go to **Graph Query** tab (see Graph Query screenshots above)
 2. Enter natural language query: *"Show me all rules for trade amounts"*
 3. Review generated Cypher query
 4. Execute and view results
 5. Use sample queries for common explorations
 
 #### Managing Violations
-1. Open **Violations** tab
+1. Open **Violations** tab (see DQ Violations screenshot above)
 2. Use filters to narrow down specific issues
 3. Click **"Details"** on any violation for complete information
 4. Export to CSV for external analysis if needed
@@ -192,15 +207,35 @@ Main Layout:
 ## 🚀 How to Run
 
 ### Prerequisites
+
+#### Software Requirements
+- **Python 3.8+** with pip
+- **Node.js 16+** with npm
+- **Neo4j 4.0+** (running locally)
+- **MySQL 8.0+** (running locally)
+- **Docker** (for Trino service)
+
+#### Database Setup
 ```bash
-# Install Python dependencies
+# 1. Install and start Neo4j locally
+# Download from: https://neo4j.com/download/
+# Default connection: bolt://localhost:7687
+# Web interface: http://localhost:7474/browser/
+
+# 2. Install and start MySQL locally
+# Create required databases:
+# - trade_system
+# - settlement_system  
+# - reporting_system
+
+# 3. Install Python dependencies
 pip install -r requirements.txt
 
-# Set up environment variables
+# 4. Set up environment variables
 cp .env.example .env
 # Edit .env with your database credentials
 
-# Install Node.js dependencies for the UI
+# 5. Install Node.js dependencies for the UI
 cd frontend
 npm install
 cd ..
@@ -210,14 +245,19 @@ cd ..
 
 #### 1. Start Infrastructure Services
 ```bash
-# Start Docker services (Trino, Neo4j, MySQL)
+# Start Trino service in Docker
 docker-compose up -d
 
 # Verify Trino connection
 curl http://localhost:8080/v1/info
 
-# Verify Neo4j connection
-curl http://localhost:7474/browser/
+# Ensure Neo4j is running locally (not in Docker)
+# Default: bolt://localhost:7687
+# Web interface: http://localhost:7474/browser/
+
+# Ensure MySQL is running locally (not in Docker)
+# Default: localhost:3306
+# Multiple databases: trade_system, settlement_system, reporting_system
 ```
 
 #### 2. Start Backend API
@@ -245,7 +285,8 @@ npm start
 python start_dq_system.py
 
 # This script will:
-# - Start all Docker services
+# - Start Trino in Docker
+# - Check Neo4j and MySQL connections (must be running locally)
 # - Launch the backend API
 # - Launch the React frontend
 # - Open the UI in your browser
@@ -280,16 +321,20 @@ print(f'Found {len(result.get(\"violations\", []))} violations')
 "
 ```
 
-### Docker-Only Setup
+### Docker Setup (Trino Only)
 ```bash
-# Start all services in Docker
+# Start Trino service in Docker
 docker-compose up -d
 
-# Check service status
+# Check Trino service status
 docker-compose ps
 
-# View logs
-docker-compose logs -f
+# View Trino logs
+docker-compose logs -f trino
+
+# Note: Neo4j and MySQL must be running locally
+# - Neo4j: bolt://localhost:7687
+# - MySQL: localhost:3306 (with trade_system, settlement_system, reporting_system databases)
 ```
 
 ## 🔌 API Endpoints
@@ -530,17 +575,19 @@ CREATE TABLE trade (
 ## ⚠️ Known Issues
 
 ### Current Limitations
-1. **Trino Configuration**: JVM settings may need adjustment for large datasets
-2. **Network Connectivity**: Docker networking issues on Windows with `host.docker.internal`
-3. **Neo4j Schema**: Manual schema initialization required for first-time setup
-4. **Memory Usage**: LangGraph workflows can consume significant memory with large datasets
-5. **Error Handling**: Some edge cases in rule evaluation need better error recovery
+1. **Local Database Dependencies**: Neo4j and MySQL must be running locally (not containerized)
+2. **Trino Configuration**: JVM settings may need adjustment for large datasets
+3. **Database Connectivity**: Connection issues if Neo4j/MySQL services are not started
+4. **Neo4j Schema**: Manual schema initialization required for first-time setup
+5. **Memory Usage**: LangGraph workflows can consume significant memory with large datasets
+6. **Error Handling**: Some edge cases in rule evaluation need better error recovery
 
 ### Workarounds
-- Use specific JVM configurations in `trino-config/jvm.config`
-- Ensure proper network settings in `docker-compose.yml`
-- Run `quick_start.py` to verify all connections before full workflow
-- Monitor system resources during large-scale analyses
+- **Database Setup**: Ensure Neo4j (port 7687) and MySQL (port 3306) are running before starting the system
+- **Connection Testing**: Run `quick_start.py` to verify all connections before full workflow
+- **Trino Configuration**: Use specific JVM configurations in `trino-config/jvm.config`
+- **System Resources**: Monitor system resources during large-scale analyses
+- **Environment Variables**: Double-check `.env` file for correct database credentials
 
 ## 🔮 Future Development
 
