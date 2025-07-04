@@ -89,14 +89,27 @@ class Neo4jManager:
             for record in result:
                 try:
                     # Map database fields to model fields
+                    rule_id = record["rule_id"]
+                    description = record["rule_desc"]
+                    rule_type = record["rule_type"]
+                    cde_name = record["cde_name"]
+                    
+                    # Generate a meaningful name from available data
+                    if description:
+                        rule_name = description
+                    elif rule_type and cde_name:
+                        rule_name = f"{rule_type.replace('_', ' ').title()} - {cde_name}"
+                    else:
+                        rule_name = f"Rule {rule_id}" if rule_id else "Unknown Rule"
+                    
                     rule = DQRule(
-                        rule_id=record["rule_id"],  # Database uses 'id' field
-                        id=record["rule_id"],
-                        name=None,  # Not available in current database structure
-                        description=record["rule_desc"],
-                        rule_type=record["rule_type"],  # Database uses 'ruleType' field
-                        ruleType=record["rule_type"],
-                        cde_name=record["cde_name"],
+                        rule_id=rule_id,  # Database uses 'id' field
+                        id=rule_id,
+                        name=rule_name,  # Generated from available data
+                        description=description,
+                        rule_type=rule_type,  # Database uses 'ruleType' field
+                        ruleType=rule_type,
+                        cde_name=cde_name,
                         systems=map_neo4j_systems_to_enum(record["systems"]),  # Map to enum values
                         rule_definition=None,  # Not available in current database structure
                         severity=None,  # Not available in current database structure

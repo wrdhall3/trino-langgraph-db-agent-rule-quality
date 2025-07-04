@@ -25,6 +25,26 @@ class DQViolation(BaseModel):
     violation_details: Optional[Dict[str, Any]] = Field(None, description="Details of the violation")
     detected_at: Optional[str] = Field(None, description="Timestamp when violation was detected")
     status: Optional[str] = Field(None, description="Status: OPEN, RESOLVED, IGNORED")
+    
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert violation to dictionary for API serialization."""
+        details = self.violation_details or {}
+        return {
+            "violation_id": self.violation_id,
+            "rule_id": self.rule_id,
+            "rule_name": details.get("rule_name", "Unknown Rule"),
+            "rule_type": details.get("rule_type", "Unknown Type"),
+            "severity": details.get("severity", "MEDIUM"),
+            "cde_name": self.cde_name,
+            "system": str(self.system) if self.system else "Unknown System",
+            "table": details.get("table", "trade"),
+            "column": details.get("column", "unknown"),
+            "uitid": self.uitid,
+            "value": details.get("value"),
+            "message": details.get("message", f"Violation detected in {details.get('column', 'unknown')} column"),
+            "timestamp": self.detected_at,
+            "status": self.status
+        }
 
 class RuleEngine:
     """Generic rule engine for evaluating data quality rules."""
@@ -142,10 +162,14 @@ class RuleEngine:
                 system=SystemType(system_name),
                 uitid=str(record[uitid_column]),
                 violation_details={
-                    "rule_type": "positive_value",
+                    "rule_name": rule.name,
+                    "rule_type": "POSITIVE_VALUE",
+                    "severity": rule.severity or "MEDIUM",
+                    "table": "trade",
                     "column": column_name,
                     "value": record[column_name],
-                    "expected": "POSITIVE VALUE > 0"
+                    "expected": "POSITIVE VALUE > 0",
+                    "message": f"Value {record[column_name]} in {column_name} must be positive"
                 },
                 detected_at=datetime.now().isoformat(),
                 status="OPEN"
@@ -179,10 +203,14 @@ class RuleEngine:
                 system=SystemType(system_name),
                 uitid=str(record[uitid_column]),
                 violation_details={
-                    "rule_type": "enum_value",
+                    "rule_name": rule.name,
+                    "rule_type": "ENUM_VALUE",
+                    "severity": rule.severity or "MEDIUM",
+                    "table": "trade",
                     "column": column_name,
                     "value": record[column_name],
-                    "valid_values": valid_values
+                    "valid_values": valid_values,
+                    "message": f"Value '{record[column_name]}' in {column_name} is not in valid values: {valid_values}"
                 },
                 detected_at=datetime.now().isoformat(),
                 status="OPEN"
@@ -208,10 +236,14 @@ class RuleEngine:
                 system=SystemType(system_name),
                 uitid=str(record[uitid_column]),
                 violation_details={
-                    "rule_type": "not_null",
+                    "rule_name": rule.name,
+                    "rule_type": "COMPLETENESS",
+                    "severity": rule.severity or "HIGH",
+                    "table": "trade",
                     "column": column_name,
                     "value": None,
-                    "expected": "NOT NULL"
+                    "expected": "NOT NULL",
+                    "message": f"Column {column_name} cannot be null"
                 },
                 detected_at=datetime.now().isoformat(),
                 status="OPEN"
@@ -435,4 +467,9 @@ class RuleEngine:
             
             report_data.append(row)
         
-        return pd.DataFrame(report_data) 
+        return pd.DataFrame(report_data)
+    
+    def close(self):
+        """Close any resources. RuleEngine doesn't manage resources directly."""
+        # RuleEngine doesn't manage connections directly, they're managed by the injected services
+        pass 
