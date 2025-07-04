@@ -164,11 +164,6 @@ The React-based web interface provides a comprehensive view of your data quality
 - **API Documentation**: Built-in access to FastAPI documentation
 - **Performance Metrics**: Track query execution times and system performance
 
-### UI Screenshots and Navigation
-
-![Dashboard Navigation](screenshots/Dashboard.png)
-*Main application interface showing the Dashboard tab with real-time data quality metrics, violation summaries, and navigation between different sections*
-
 ### Usage Examples
 
 #### Running Data Quality Analysis
