@@ -425,51 +425,201 @@ graph TD
 
 ## 📊 Graph Database Schema
 
-### Neo4j Graph Structure
+### Neo4j Graph Database Overview
 
-```mermaid
-graph LR
-    System1[Trade System] -->|HAS_CDE| CDE1[Trade Amount]
-    System2[Settlement System] -->|HAS_CDE| CDE1
-    System3[Reporting System] -->|HAS_CDE| CDE1
-    
-    CDE1 -->|HAS_RULE| Rule1[Positive Value Rule]
-    CDE1 -->|HAS_RULE| Rule2[Not Null Rule]
-    
-    CDE2[Trade Date] -->|HAS_RULE| Rule3[Date Format Rule]
-    CDE2 -->|HAS_RULE| Rule4[Business Day Rule]
-    
-    System1 -->|HAS_CDE| CDE2
-    System2 -->|HAS_CDE| CDE2
-    System3 -->|HAS_CDE| CDE2
-    
-    style System1 fill:#e3f2fd
-    style System2 fill:#f3e5f5
-    style System3 fill:#e8f5e8
-    style CDE1 fill:#fff3e0
-    style CDE2 fill:#fff3e0
-    style Rule1 fill:#ffebee
-    style Rule2 fill:#ffebee
-    style Rule3 fill:#ffebee
-    style Rule4 fill:#ffebee
+The Neo4j graph database serves as the backbone of our data quality management system, providing a flexible and intuitive way to model the relationships between trading systems, Critical Data Elements (CDEs), and Data Quality Rules (DQ Rules). This graph-based approach allows us to capture the complex interdependencies and data lineage across the entire investment banking ecosystem.
+
+![Neo4j Database Graph](screenshots/Neo4j_Database_Graph.png)
+*Complete Neo4j graph showing the relationships between Systems, CDEs, and DQ Rules*
+
+### Why Graph Databases for Data Quality?
+
+**Traditional Challenges**:
+- Complex many-to-many relationships between systems, data elements, and rules
+- Data lineage tracking across multiple systems
+- Dynamic rule associations and system dependencies
+- Difficulty in visualizing data quality governance structure
+
+**Graph Database Benefits**:
+- **Natural Relationship Modeling**: Intuitive representation of how systems, CDEs, and rules interconnect
+- **Flexible Schema**: Easy to add new systems, CDEs, or rules without major schema changes
+- **Powerful Queries**: Cypher queries can traverse complex relationships efficiently
+- **Visualization**: Clear visual representation of data quality governance structure
+- **Scalability**: Handles complex queries across thousands of nodes and relationships
+
+### Graph Structure Analysis
+
+Based on the current Neo4j database structure (shown in the screenshot above), our graph contains:
+
+#### **System Nodes (Yellow)**
+- **Trade System**: Front office trading platform
+- **Settlement System**: Middle office settlement processing
+- **Reporting System**: Back office regulatory reporting
+
+#### **Critical Data Elements - CDEs (Red)**
+- **Symbol**: Trading instrument identifier
+- **uitid**: Unique trade identifier across all systems
+- **Side**: Buy/Sell indicator
+- **Price**: Trade execution price
+- **Quantity**: Number of shares/units traded
+- **Trade Date**: Date when trade was executed
+
+#### **Data Quality Rules - DQRules (Green)**
+- Multiple validation rules applied to each CDE
+- Rules ensure data integrity, completeness, and business logic compliance
+- Each rule has specific severity levels and validation logic
+
+### Node Types & Detailed Properties
+
+#### **System Nodes**
+```cypher
+(:System {
+    name: "Trade System",           // Display name
+    type: "trade",                  // System type identifier
+    description: "Front office trading platform",
+    database: "trade_system",       // Database name
+    connection_info: {...},         // Connection details
+    is_active: true,                // System status
+    created_at: "2024-01-01T00:00:00Z"
+})
 ```
 
-### Node Types & Relationships
+#### **CDE Nodes**
+```cypher
+(:CDE {
+    name: "Trade Date",             // CDE display name
+    description: "Date when trade was executed",
+    data_type: "DATE",              // Expected data type
+    is_required: true,              // Whether CDE is mandatory
+    business_definition: "...",     // Business context
+    created_at: "2024-01-01T00:00:00Z"
+})
+```
 
-**Node Types**:
-- **System**: Represents trading systems (Trade, Settlement, Reporting)
-- **CDE**: Critical Data Elements that must maintain quality
-- **DQRule**: Data Quality Rules that validate CDEs
+#### **DQRule Nodes**
+```cypher
+(:DQRule {
+    id: "RULE_001",                 // Unique rule identifier
+    description: "Trade Date must not be null",
+    ruleType: "NOT_NULL",           // Rule type for validation logic
+    severity: "HIGH",               // CRITICAL, HIGH, MEDIUM, LOW
+    is_active: true,                // Rule status
+    created_at: "2024-01-01T00:00:00Z",
+    updated_at: "2024-01-01T00:00:00Z"
+})
+```
 
-**Relationships**:
-- **HAS_CDE**: System contains a Critical Data Element
-- **HAS_RULE**: CDE is validated by a Data Quality Rule
-- **APPLIES_TO**: Rule applies to specific systems
+### Relationships & Their Significance
 
-**Properties**:
-- **System**: `name`, `type`, `description`, `connection_info`
-- **CDE**: `name`, `data_type`, `description`, `table_name`, `column_name`
-- **DQRule**: `rule_id`, `rule_type`, `description`, `severity`, `is_active`
+#### **HAS_CDE Relationship**
+```cypher
+(System)-[:HAS_CDE]->(CDE)
+```
+- **Purpose**: Defines which CDEs exist in each system
+- **Properties**: May include system-specific metadata
+- **Example**: `(Trade System)-[:HAS_CDE]->(Trade Date)`
+
+#### **HAS_RULE Relationship**
+```cypher
+(CDE)-[:HAS_RULE]->(DQRule)
+```
+- **Purpose**: Associates validation rules with specific CDEs
+- **Properties**: Rule application context
+- **Example**: `(Trade Date)-[:HAS_RULE]->(Date Format Rule)`
+
+### Complex Query Examples
+
+#### **Find All Rules for a Specific System**
+```cypher
+MATCH (s:System {name: "Trade System"})-[:HAS_CDE]->(c:CDE)-[:HAS_RULE]->(r:DQRule)
+WHERE r.is_active = true
+RETURN s.name, c.name, r.description, r.severity
+ORDER BY r.severity DESC
+```
+
+#### **Identify CDEs Common Across All Systems**
+```cypher
+MATCH (c:CDE)
+WHERE size([(c)<-[:HAS_CDE]-(s:System) | s]) = 3
+RETURN c.name, c.description
+```
+
+#### **Find High-Severity Rules by System**
+```cypher
+MATCH (s:System)-[:HAS_CDE]->(c:CDE)-[:HAS_RULE]->(r:DQRule)
+WHERE r.severity IN ["CRITICAL", "HIGH"]
+RETURN s.name, count(r) as high_severity_rules
+ORDER BY high_severity_rules DESC
+```
+
+### Data Lineage Tracking
+
+The graph structure enables sophisticated data lineage tracking:
+
+1. **Cross-System Validation**: Rules can be applied across multiple systems for the same CDE
+2. **Impact Analysis**: Changes to a CDE or rule can be traced across all affected systems
+3. **Dependency Mapping**: Understanding which systems depend on which CDEs and rules
+4. **Compliance Auditing**: Tracking rule changes and their impact on data quality
+
+### System-Specific Column Mapping
+
+One of the key challenges addressed by our graph database is handling different column names across systems for the same CDE:
+
+| CDE | Trade System | Settlement System | Reporting System |
+|-----|-------------|-------------------|------------------|
+| Settlement Date | `settle_date` | `settlement_date` | `settlement_date` |
+| Symbol | `symbol` | `symbol` | `instrument_symbol` |
+| Trade Date | `trade_date` | `trade_date` | `trade_date` |
+
+This mapping is handled in our rule engine with system-specific column mappings, ensuring that the same CDE can be validated correctly across different database schemas.
+
+### Graph Database Maintenance
+
+#### **Adding New Systems**
+```cypher
+CREATE (s:System {
+    name: "New System",
+    type: "new_system",
+    description: "Description of new system",
+    is_active: true,
+    created_at: datetime()
+})
+```
+
+#### **Adding New CDEs**
+```cypher
+CREATE (c:CDE {
+    name: "New CDE",
+    description: "Description of new CDE",
+    data_type: "VARCHAR",
+    is_required: true,
+    created_at: datetime()
+})
+```
+
+#### **Creating Relationships**
+```cypher
+MATCH (s:System {name: "Trade System"}), (c:CDE {name: "New CDE"})
+CREATE (s)-[:HAS_CDE]->(c)
+```
+
+### Performance Considerations
+
+- **Indexing**: Proper indexes on frequently queried properties (name, id, type)
+- **Query Optimization**: Use EXPLAIN to analyze query performance
+- **Connection Pooling**: Managed through Neo4j Python driver
+- **Memory Management**: Appropriate JVM settings for large datasets
+
+### Integration with Agentic AI
+
+The graph database serves as the knowledge base for our agentic AI system:
+
+- **Rule Discovery**: AI agents query the graph to find applicable rules
+- **System Understanding**: Agents understand system relationships and dependencies
+- **Dynamic Adaptation**: New rules and CDEs can be added without code changes
+- **Intelligent Queries**: Natural language queries are converted to Cypher for execution
+
+This graph-based approach provides the flexibility and power needed for sophisticated data quality management in complex investment banking environments.
 
 ## 🗄️ Relational Database Schemas
 
