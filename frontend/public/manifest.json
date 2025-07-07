@@ -1,0 +1,14 @@
+{
+  "short_name": "DQ Management",
+  "name": "Data Quality Management System",
+  "description": "Investment Banking Data Quality Management System with Agentic AI",
+  "icons": [],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#001529",
+  "background_color": "#ffffff",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "categories": ["business", "finance", "productivity"],
+  "lang": "en"
+} 

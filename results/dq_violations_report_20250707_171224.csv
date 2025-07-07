@@ -1,0 +1,8 @@
+CDE,DQ_Rule_Desc,uitid,Trade System,Settlement System,Reporting System
+uitid,uitid cannot be null,None,No,Yes,No
+Trade Date,Trade Date cannot be null,UIT-0001-ABC,No,No,Yes
+Quantity,Quantity must be positive,UIT-0002-XYZ,Yes,No,No
+Symbol,Symbol must not be null,UIT-0003-DEF,No,Yes,No
+Price,Price must be positive,6455b9bc-d040-4a1a-a857-1b5fe2db77da,Yes,No,No
+Side,Side must be either BUY or SELL,527f1e2e-b026-45c7-91ce-ae4fe3fac578,No,No,Yes
+Settlement Date,Settlement Date cannot be null,67eb47a0-d0a6-4743-a6a2-5e7d7c20e8a3,No,No,Yes

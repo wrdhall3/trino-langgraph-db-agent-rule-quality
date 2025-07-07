@@ -191,6 +191,7 @@ class DQService:
                     RETURN rule.id AS rule_id,
                            rule.description AS description,
                            rule.ruleType AS rule_type,
+                           rule.severity AS severity,
                            cde.name AS cde_name,
                            collect(DISTINCT system.name) AS systems
                 """)
@@ -202,6 +203,7 @@ class DQService:
                     cde_name = record.get("cde_name")
                     rule_type = record.get("rule_type")
                     description = record.get("description")
+                    severity = record.get("severity")
                     
                     # Create rule name: use description if available, otherwise create from rule_type and cde_name
                     if description:
@@ -216,7 +218,7 @@ class DQService:
                         rule_id=rule_id,
                         description=description,
                         rule_type=rule_type,
-                        severity=None,  # Not available in current schema
+                        severity=severity,  # Now available from Neo4j database
                         threshold=None,  # Not available in current schema
                         parameters=None,  # Not available in current schema
                         cde_name=cde_name,
@@ -239,8 +241,6 @@ class DQService:
                     OPTIONAL MATCH (system)-[:HAS_CDE]->(cde:CDE)
                     RETURN system.name AS name,
                            system.description AS description,
-                           system.database AS database,
-                           system.table AS table,
                            collect(cde.name) AS cdes
                 """)
                 
@@ -249,8 +249,8 @@ class DQService:
                     system = System(
                         name=record["name"],
                         description=record.get("description"),
-                        database=record.get("database"),
-                        table=record.get("table"),
+                        database=None,  # Not available in current Neo4j schema
+                        table=None,     # Not available in current Neo4j schema
                         cdes=record.get("cdes", [])
                     )
                     systems.append(system)

@@ -79,7 +79,7 @@ class Neo4jManager:
         query = """
         MATCH (r:DQRule)<-[:HAS_RULE]-(c:CDE)<-[:HAS_CDE]-(s:System)
         RETURN r.id as rule_id, r.description as rule_desc, r.ruleType as rule_type,
-               c.name as cde_name, collect(DISTINCT s.name) as systems
+               r.severity as severity, c.name as cde_name, collect(DISTINCT s.name) as systems
         ORDER BY r.id
         """
         
@@ -92,6 +92,7 @@ class Neo4jManager:
                     rule_id = record["rule_id"]
                     description = record["rule_desc"]
                     rule_type = record["rule_type"]
+                    severity = record["severity"]
                     cde_name = record["cde_name"]
                     
                     # Generate a meaningful name from available data
@@ -112,7 +113,7 @@ class Neo4jManager:
                         cde_name=cde_name,
                         systems=map_neo4j_systems_to_enum(record["systems"]),  # Map to enum values
                         rule_definition=None,  # Not available in current database structure
-                        severity=None,  # Not available in current database structure
+                        severity=severity,  # Now available from Neo4j database
                         is_active=None,  # Not available in current database structure
                         metadata=None  # Not available in current database structure
                     )

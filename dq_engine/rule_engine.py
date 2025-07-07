@@ -34,7 +34,7 @@ class DQViolation(BaseModel):
             "rule_id": self.rule_id,
             "rule_name": details.get("rule_name", "Unknown Rule"),
             "rule_type": details.get("rule_type", "Unknown Type"),
-            "severity": details.get("severity", "MEDIUM"),
+            "severity": details.get("severity", "UNKNOWN"),
             "cde_name": self.cde_name,
             "system": str(self.system) if self.system else "Unknown System",
             "table": details.get("table", "trade"),
@@ -122,25 +122,51 @@ class RuleEngine:
     
     def _get_column_name_for_cde(self, cde_name: str, system_name: str) -> Optional[str]:
         """Get the actual column name for a CDE in a specific system."""
-        # Map CDE names to actual database column names
-        cde_mapping = {
-            "Trade Date": "trade_date",
-            "Quantity": "quantity", 
-            "Symbol": "symbol",
-            "Price": "price",
-            "Side": "side",
-            "uitid": "uitid"
+        # System-specific mappings for CDE names to database column names
+        # This handles cases where different systems use different column names for the same CDE
+        system_specific_mappings = {
+            "trade": {
+                "Trade Date": "trade_date",
+                "Settlement Date": "settle_date",      # Trade system uses "settle_date" 
+                "Quantity": "quantity", 
+                "Symbol": "symbol",
+                "Price": "price",
+                "Side": "side",
+                "uitid": "uitid"
+            },
+            "settlement": {
+                "Trade Date": "trade_date",
+                "Settlement Date": "settlement_date",  # Settlement system uses "settlement_date"
+                "Quantity": "quantity", 
+                "Symbol": "symbol",
+                "Price": "price",
+                "Side": "side",
+                "uitid": "uitid"
+            },
+            "reporting": {
+                "Trade Date": "trade_date",
+                "Settlement Date": "settlement_date",  # Reporting system uses "settlement_date"
+                "Quantity": "quantity", 
+                "Symbol": "instrument_symbol",         # Reporting system uses "instrument_symbol"
+                "Price": "price",
+                "Side": "side",
+                "uitid": "uitid"
+            }
         }
         
         # Handle case where cde_name is None
         if not cde_name:
             return None
             
-        # Handle case-insensitive mapping
-        mapped_column = cde_mapping.get(cde_name)
+        # Get the mapping for the specific system
+        system_mapping = system_specific_mappings.get(system_name, {})
+        mapped_column = system_mapping.get(cde_name)
+        
         if not mapped_column:
-            # Try direct mapping if CDE name matches column name
-            mapped_column = cde_name.lower()
+            # Fallback: try direct mapping if CDE name matches column name
+            # Convert spaces to underscores and make lowercase for better database column matching
+            mapped_column = cde_name.lower().replace(" ", "_")
+            logger.warning(f"No explicit mapping found for CDE '{cde_name}' in system '{system_name}', using fallback: '{mapped_column}'")
         
         return mapped_column
     
@@ -164,7 +190,7 @@ class RuleEngine:
                 violation_details={
                     "rule_name": rule.name,
                     "rule_type": "POSITIVE_VALUE",
-                    "severity": rule.severity or "MEDIUM",
+                    "severity": rule.severity,
                     "table": "trade",
                     "column": column_name,
                     "value": record[column_name],
@@ -205,7 +231,7 @@ class RuleEngine:
                 violation_details={
                     "rule_name": rule.name,
                     "rule_type": "ENUM_VALUE",
-                    "severity": rule.severity or "MEDIUM",
+                    "severity": rule.severity,
                     "table": "trade",
                     "column": column_name,
                     "value": record[column_name],
@@ -238,7 +264,7 @@ class RuleEngine:
                 violation_details={
                     "rule_name": rule.name,
                     "rule_type": "COMPLETENESS",
-                    "severity": rule.severity or "HIGH",
+                    "severity": rule.severity,
                     "table": "trade",
                     "column": column_name,
                     "value": None,
